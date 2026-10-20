@@ -1,201 +1,572 @@
-/* ========================================
+
+/* =========================================
    PORTFOLIO JAVASCRIPT
-======================================== */
+========================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    /* =========================================
+       MOBILE NAVIGATION
+    ========================================== */
+
+    const menuToggle = document.getElementById("menu-toggle");
+    const navLinks = document.getElementById("nav-links");
+
+    if (menuToggle && navLinks) {
+
+        menuToggle.addEventListener("click", () => {
+
+            const isOpen = navLinks.classList.toggle("active");
+
+            menuToggle.setAttribute(
+                "aria-expanded",
+                isOpen
+            );
+
+            menuToggle.textContent = isOpen
+                ? "✕"
+                : "☰";
+        });
 
 
-/* ========================================
-   MOBILE NAVIGATION
-======================================== */
+        // Close menu after clicking a navigation link
 
-const menuToggle = document.getElementById("menu-toggle");
+        const navigationItems =
+            navLinks.querySelectorAll("a");
 
-const navLinks = document.getElementById("nav-links");
+        navigationItems.forEach((link) => {
 
+            link.addEventListener("click", () => {
 
-menuToggle.addEventListener("click", () => {
+                navLinks.classList.remove("active");
 
-    navLinks.classList.toggle("active");
+                menuToggle.setAttribute(
+                    "aria-expanded",
+                    "false"
+                );
 
-    const isOpen = navLinks.classList.contains("active");
+                menuToggle.textContent = "☰";
 
-    menuToggle.setAttribute(
-        "aria-expanded",
-        isOpen
-    );
+            });
 
-    menuToggle.textContent = isOpen
-        ? "✕"
-        : "☰";
+        });
 
-});
+    }
 
 
-/* Close mobile menu after clicking a link */
 
-const navigationLinks =
-    document.querySelectorAll(".nav-links a");
+    /* =========================================
+       DARK MODE
+    ========================================== */
 
-
-navigationLinks.forEach((link) => {
-
-    link.addEventListener("click", () => {
-
-        navLinks.classList.remove("active");
-
-        menuToggle.setAttribute(
-            "aria-expanded",
-            "false"
-        );
-
-        menuToggle.textContent = "☰";
-
-    });
-
-});
+    const themeToggle =
+        document.getElementById("theme-toggle");
 
 
-/* ========================================
-   DARK / LIGHT MODE
-======================================== */
-
-const themeToggle =
-    document.getElementById("theme-toggle");
+    const savedTheme =
+        localStorage.getItem("portfolio-theme");
 
 
-const savedTheme =
-    localStorage.getItem("portfolio-theme");
+    // Restore previously selected theme
 
+    if (savedTheme === "dark") {
 
-if (savedTheme === "dark") {
+        document.body.classList.add("dark-mode");
 
-    document.body.classList.add("dark-mode");
-
-    themeToggle.textContent = "☀️";
-
-}
-
-
-themeToggle.addEventListener("click", () => {
-
-    document.body.classList.toggle("dark-mode");
-
-
-    const darkModeEnabled =
-        document.body.classList.contains("dark-mode");
-
-
-    if (darkModeEnabled) {
-
-        themeToggle.textContent = "☀️";
-
-        localStorage.setItem(
-            "portfolio-theme",
-            "dark"
-        );
+        if (themeToggle) {
+            themeToggle.textContent = "☀️";
+        }
 
     } else {
 
-        themeToggle.textContent = "🌙";
+        if (themeToggle) {
+            themeToggle.textContent = "🌙";
+        }
 
-        localStorage.setItem(
-            "portfolio-theme",
-            "light"
+    }
+
+
+    if (themeToggle) {
+
+        themeToggle.addEventListener("click", () => {
+
+            document.body.classList.toggle(
+                "dark-mode"
+            );
+
+
+            const isDark =
+                document.body.classList.contains(
+                    "dark-mode"
+                );
+
+
+            localStorage.setItem(
+                "portfolio-theme",
+                isDark
+                    ? "dark"
+                    : "light"
+            );
+
+
+            themeToggle.textContent =
+                isDark
+                    ? "☀️"
+                    : "🌙";
+
+        });
+
+    }
+
+
+
+    /* =========================================
+       ACTIVE NAVIGATION
+    ========================================== */
+
+    const sections =
+        document.querySelectorAll(
+            "main section[id]"
+        );
+
+
+    const navigationLinks =
+        document.querySelectorAll(
+            ".nav-links a"
+        );
+
+
+    const updateActiveNavigation = () => {
+
+        let currentSection = "";
+
+        sections.forEach((section) => {
+
+            const sectionTop =
+                section.offsetTop - 120;
+
+            const sectionHeight =
+                section.offsetHeight;
+
+
+            if (
+                window.scrollY >= sectionTop &&
+                window.scrollY <
+                    sectionTop + sectionHeight
+            ) {
+
+                currentSection =
+                    section.getAttribute("id");
+
+            }
+
+        });
+
+
+        navigationLinks.forEach((link) => {
+
+            link.classList.remove(
+                "active"
+            );
+
+
+            const target =
+                link.getAttribute("href");
+
+
+            if (
+                target ===
+                `#${currentSection}`
+            ) {
+
+                link.classList.add(
+                    "active"
+                );
+
+            }
+
+        });
+
+    };
+
+
+    window.addEventListener(
+        "scroll",
+        updateActiveNavigation
+    );
+
+
+    updateActiveNavigation();
+
+
+
+    /* =========================================
+       CONTACT FORM
+    ========================================== */
+
+    const contactForm =
+        document.getElementById(
+            "contact-form"
+        );
+
+
+    const formMessage =
+        document.getElementById(
+            "form-message"
+        );
+
+
+    if (contactForm) {
+
+        contactForm.addEventListener(
+            "submit",
+            async (event) => {
+
+                event.preventDefault();
+
+
+                const name =
+                    document
+                        .getElementById("name")
+                        ?.value
+                        .trim();
+
+
+                const email =
+                    document
+                        .getElementById("email")
+                        ?.value
+                        .trim();
+
+
+                const message =
+                    document
+                        .getElementById("message")
+                        ?.value
+                        .trim();
+
+
+
+                /* =================================
+                   VALIDATION
+                ================================== */
+
+                if (!name) {
+
+                    showFormMessage(
+                        "Please enter your name.",
+                        "error"
+                    );
+
+                    return;
+
+                }
+
+
+                if (!email) {
+
+                    showFormMessage(
+                        "Please enter your email address.",
+                        "error"
+                    );
+
+                    return;
+
+                }
+
+
+                if (!isValidEmail(email)) {
+
+                    showFormMessage(
+                        "Please enter a valid email address.",
+                        "error"
+                    );
+
+                    return;
+
+                }
+
+
+                if (!message) {
+
+                    showFormMessage(
+                        "Please enter your message.",
+                        "error"
+                    );
+
+                    return;
+
+                }
+
+
+                if (message.length < 10) {
+
+                    showFormMessage(
+                        "Please write a little more about your message.",
+                        "error"
+                    );
+
+                    return;
+
+                }
+
+
+
+                /* =================================
+                   CURRENT FORM HANDLING
+                ==================================
+
+                   Firebase/email backend can be
+                   connected here later.
+
+                ================================== */
+
+                showFormMessage(
+                    "Thank you! Your message has been received.",
+                    "success"
+                );
+
+
+                contactForm.reset();
+
+            }
         );
 
     }
 
-});
 
 
-/* ========================================
-   CONTACT FORM VALIDATION
-======================================== */
+    /* =========================================
+       EMAIL VALIDATION
+    ========================================== */
 
-const contactForm =
-    document.getElementById("contact-form");
+    function isValidEmail(email) {
 
+        const emailPattern =
+            /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const formMessage =
-    document.getElementById("form-message");
+        return emailPattern.test(email);
 
-
-contactForm.addEventListener("submit", (event) => {
-
-    event.preventDefault();
-
-
-    const name =
-        document.getElementById("name").value.trim();
-
-
-    const email =
-        document.getElementById("email").value.trim();
-
-
-    const message =
-        document.getElementById("message").value.trim();
-
-
-    /* Clear previous message */
-
-    formMessage.textContent = "";
-
-    formMessage.className = "form-message";
-
-
-    /* Validate name */
-
-    if (name.length < 2) {
-
-        formMessage.textContent =
-            "Please enter a valid name.";
-
-        formMessage.classList.add("error");
-
-        return;
     }
 
 
-    /* Validate email */
 
-    const emailPattern =
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    /* =========================================
+       FORM MESSAGE
+    ========================================== */
 
+    function showFormMessage(
+        message,
+        type
+    ) {
 
-    if (!emailPattern.test(email)) {
+        if (!formMessage) {
+            return;
+        }
+
 
         formMessage.textContent =
-            "Please enter a valid email address.";
+            message;
 
-        formMessage.classList.add("error");
 
-        return;
+        if (type === "success") {
+
+            formMessage.style.color =
+                "#16a34a";
+
+        } else {
+
+            formMessage.style.color =
+                "#dc2626";
+
+        }
+
+
+        setTimeout(() => {
+
+            formMessage.textContent = "";
+
+        }, 5000);
+
     }
 
 
-    /* Validate message */
 
-    if (message.length < 10) {
+    /* =========================================
+       SCROLL REVEAL
+    ========================================== */
 
-        formMessage.textContent =
-            "Message should contain at least 10 characters.";
+    const revealElements =
+        document.querySelectorAll(
+            ".project-card, " +
+            ".skill-category, " +
+            ".certification-card, " +
+            ".education-card"
+        );
 
-        formMessage.classList.add("error");
 
-        return;
+    if ("IntersectionObserver" in window) {
+
+        const revealObserver =
+            new IntersectionObserver(
+                (entries, observer) => {
+
+                    entries.forEach(
+                        (entry) => {
+
+                            if (
+                                entry.isIntersecting
+                            ) {
+
+                                entry.target.classList.add(
+                                    "show"
+                                );
+
+
+                                observer.unobserve(
+                                    entry.target
+                                );
+
+                            }
+
+                        }
+                    );
+
+                },
+                {
+                    threshold: 0.12
+                }
+            );
+
+
+        revealElements.forEach(
+            (element) => {
+
+                element.classList.add(
+                    "reveal"
+                );
+
+
+                revealObserver.observe(
+                    element
+                );
+
+            }
+        );
+
     }
 
 
-    /* Successful validation */
 
-    formMessage.textContent =
-        "Your message has been validated successfully.";
+    /* =========================================
+       PREVENT HASH JUMP
+       WITH SMOOTH SCROLL
+    ========================================== */
 
-    formMessage.classList.add("success");
+    const internalLinks =
+        document.querySelectorAll(
+            'a[href^="#"]'
+        );
 
 
-    /* Clear form */
+    internalLinks.forEach((link) => {
 
-    contactForm.reset();
+        link.addEventListener(
+            "click",
+            (event) => {
+
+                const targetId =
+                    link.getAttribute("href");
+
+
+                if (
+                    !targetId ||
+                    targetId === "#"
+                ) {
+
+                    return;
+
+                }
+
+
+                const target =
+                    document.querySelector(
+                        targetId
+                    );
+
+
+                if (!target) {
+                    return;
+                }
+
+
+                event.preventDefault();
+
+
+                const header =
+                    document.querySelector(
+                        "header"
+                    );
+
+
+                const headerHeight =
+                    header
+                        ? header.offsetHeight
+                        : 0;
+
+
+                const targetPosition =
+                    target.getBoundingClientRect()
+                        .top +
+                    window.scrollY -
+                    headerHeight;
+
+
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: "smooth"
+                });
+
+            }
+        );
+
+    });
+
+
+
+    /* =========================================
+       CLOSE MOBILE MENU ON RESIZE
+    ========================================== */
+
+    window.addEventListener(
+        "resize",
+        () => {
+
+            if (
+                window.innerWidth > 768 &&
+                navLinks
+            ) {
+
+                navLinks.classList.remove(
+                    "active"
+                );
+
+
+                if (menuToggle) {
+
+                    menuToggle.setAttribute(
+                        "aria-expanded",
+                        "false"
+                    );
+
+                    menuToggle.textContent =
+                        "☰";
+
+                }
+
+            }
+
+        }
+    );
 
 });
