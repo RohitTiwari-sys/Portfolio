@@ -1,51 +1,84 @@
 
 /* =========================================
+   FIREBASE IMPORTS
+========================================= */
+
+import {
+    collection,
+    addDoc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+import { db } from "./firebase.js";
+
+
+/* =========================================
    PORTFOLIO JAVASCRIPT
 ========================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
 
+    console.log("Portfolio JavaScript loaded successfully.");
+
+
+
     /* =========================================
        MOBILE NAVIGATION
     ========================================== */
 
-    const menuToggle = document.getElementById("menu-toggle");
-    const navLinks = document.getElementById("nav-links");
+    const menuToggle =
+        document.getElementById("menu-toggle");
+
+    const navLinks =
+        document.getElementById("nav-links");
+
 
     if (menuToggle && navLinks) {
 
         menuToggle.addEventListener("click", () => {
 
-            const isOpen = navLinks.classList.toggle("active");
+            const isOpen =
+                navLinks.classList.toggle("active");
+
 
             menuToggle.setAttribute(
                 "aria-expanded",
-                isOpen
+                isOpen.toString()
             );
 
-            menuToggle.textContent = isOpen
-                ? "✕"
-                : "☰";
+
+            menuToggle.textContent =
+                isOpen ? "✕" : "☰";
+
         });
 
 
-        // Close menu after clicking a navigation link
+        /*
+         * Close mobile menu
+         * when navigation link is clicked
+         */
 
         const navigationItems =
             navLinks.querySelectorAll("a");
+
 
         navigationItems.forEach((link) => {
 
             link.addEventListener("click", () => {
 
-                navLinks.classList.remove("active");
+                navLinks.classList.remove(
+                    "active"
+                );
+
 
                 menuToggle.setAttribute(
                     "aria-expanded",
                     "false"
                 );
 
-                menuToggle.textContent = "☰";
+
+                menuToggle.textContent =
+                    "☰";
 
             });
 
@@ -56,7 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
-       DARK MODE
+       DARK / LIGHT MODE
     ========================================== */
 
     const themeToggle =
@@ -64,57 +97,77 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     const savedTheme =
-        localStorage.getItem("portfolio-theme");
+        localStorage.getItem(
+            "portfolio-theme"
+        );
 
 
-    // Restore previously selected theme
+    /*
+     * Restore saved theme
+     */
 
     if (savedTheme === "dark") {
 
-        document.body.classList.add("dark-mode");
+        document.body.classList.add(
+            "dark-mode"
+        );
+
 
         if (themeToggle) {
-            themeToggle.textContent = "☀️";
+
+            themeToggle.textContent =
+                "☀️";
+
         }
 
     } else {
 
         if (themeToggle) {
-            themeToggle.textContent = "🌙";
+
+            themeToggle.textContent =
+                "🌙";
+
         }
 
     }
 
 
+    /*
+     * Toggle theme
+     */
+
     if (themeToggle) {
 
-        themeToggle.addEventListener("click", () => {
+        themeToggle.addEventListener(
+            "click",
+            () => {
 
-            document.body.classList.toggle(
-                "dark-mode"
-            );
-
-
-            const isDark =
-                document.body.classList.contains(
+                document.body.classList.toggle(
                     "dark-mode"
                 );
 
 
-            localStorage.setItem(
-                "portfolio-theme",
-                isDark
-                    ? "dark"
-                    : "light"
-            );
+                const isDark =
+                    document.body.classList.contains(
+                        "dark-mode"
+                    );
 
 
-            themeToggle.textContent =
-                isDark
-                    ? "☀️"
-                    : "🌙";
+                localStorage.setItem(
+                    "portfolio-theme",
+                    isDark
+                        ? "dark"
+                        : "light"
+                );
 
-        });
+
+                themeToggle.textContent =
+                    isDark
+                        ? "☀️"
+                        : "🌙";
+
+            }
+        );
 
     }
 
@@ -136,14 +189,16 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
 
-    const updateActiveNavigation = () => {
+    function updateActiveNavigation() {
 
         let currentSection = "";
+
 
         sections.forEach((section) => {
 
             const sectionTop =
-                section.offsetTop - 120;
+                section.offsetTop - 150;
+
 
             const sectionHeight =
                 section.offsetHeight;
@@ -187,7 +242,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         });
 
-    };
+    }
 
 
     window.addEventListener(
@@ -202,6 +257,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* =========================================
        CONTACT FORM
+       FIRESTORE
     ========================================== */
 
     const contactForm =
@@ -222,8 +278,21 @@ document.addEventListener("DOMContentLoaded", () => {
             "submit",
             async (event) => {
 
+                /*
+                 * Stop normal HTML form submission
+                 */
+
                 event.preventDefault();
 
+
+                console.log(
+                    "Form submission intercepted."
+                );
+
+
+                /* ==============================
+                   GET FORM VALUES
+                ============================== */
 
                 const name =
                     document
@@ -246,10 +315,28 @@ document.addEventListener("DOMContentLoaded", () => {
                         .trim();
 
 
+                console.log(
+                    "Name:",
+                    name
+                );
 
-                /* =================================
+
+                console.log(
+                    "Email:",
+                    email
+                );
+
+
+                console.log(
+                    "Message:",
+                    message
+                );
+
+
+
+                /* ==============================
                    VALIDATION
-                ================================== */
+                ============================== */
 
                 if (!name) {
 
@@ -302,7 +389,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (message.length < 10) {
 
                     showFormMessage(
-                        "Please write a little more about your message.",
+                        "Please write at least 10 characters.",
                         "error"
                     );
 
@@ -311,23 +398,132 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
 
+                /* ==============================
+                   SUBMIT BUTTON
+                ============================== */
 
-                /* =================================
-                   CURRENT FORM HANDLING
-                ==================================
+                const submitButton =
+                    contactForm.querySelector(
+                        "button[type='submit']"
+                    );
 
-                   Firebase/email backend can be
-                   connected here later.
 
-                ================================== */
+                if (submitButton) {
 
-                showFormMessage(
-                    "Thank you! Your message has been received.",
-                    "success"
+                    submitButton.disabled =
+                        true;
+
+
+                    submitButton.dataset.originalText =
+                        submitButton.textContent;
+
+
+                    submitButton.textContent =
+                        "Sending...";
+
+                }
+
+
+
+                /* ==============================
+                   FIRESTORE
+                ============================== */
+
+                console.log(
+                    "Attempting to save message to Firestore..."
                 );
 
 
-                contactForm.reset();
+                try {
+
+                    const docRef =
+                        await addDoc(
+                            collection(
+                                db,
+                                "messages"
+                            ),
+                            {
+                                name: name,
+                                email: email,
+                                message: message,
+                                createdAt:
+                                    serverTimestamp()
+                            }
+                        );
+
+
+                    console.log(
+                        "MESSAGE SAVED SUCCESSFULLY!"
+                    );
+
+
+                    console.log(
+                        "Document ID:",
+                        docRef.id
+                    );
+
+
+                    /* ==========================
+                       SUCCESS MESSAGE
+                    ========================== */
+
+                    showFormMessage(
+                        "Message sent successfully! I'll get back to you soon.",
+                        "success"
+                    );
+
+
+                    /*
+                     * Clear form
+                     */
+
+                    contactForm.reset();
+
+
+                } catch (error) {
+
+                    console.error(
+                        "FIRESTORE ERROR:",
+                        error
+                    );
+
+
+                    console.error(
+                        "Error code:",
+                        error.code
+                    );
+
+
+                    console.error(
+                        "Error message:",
+                        error.message
+                    );
+
+
+                    showFormMessage(
+                        "Something went wrong. Please try again later.",
+                        "error"
+                    );
+
+                } finally {
+
+                    /*
+                     * Restore button
+                     */
+
+                    if (submitButton) {
+
+                        submitButton.disabled =
+                            false;
+
+
+                        submitButton.textContent =
+                            submitButton.dataset.originalText ||
+                            "Send Message";
+
+                    }
+
+                }
 
             }
         );
@@ -345,6 +541,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const emailPattern =
             /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+
         return emailPattern.test(email);
 
     }
@@ -361,13 +558,38 @@ document.addEventListener("DOMContentLoaded", () => {
     ) {
 
         if (!formMessage) {
+
+            /*
+             * Fallback if form-message
+             * element does not exist
+             */
+
+            alert(message);
+
             return;
+
         }
 
 
         formMessage.textContent =
             message;
 
+
+        formMessage.classList.remove(
+            "success",
+            "error"
+        );
+
+
+        formMessage.classList.add(
+            type
+        );
+
+
+        /*
+         * Fallback inline colors.
+         * CSS can override these.
+         */
 
         if (type === "success") {
 
@@ -382,9 +604,20 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
+        /*
+         * Automatically clear
+         * the message after 5 seconds
+         */
+
         setTimeout(() => {
 
-            formMessage.textContent = "";
+            formMessage.textContent =
+                "";
+
+            formMessage.classList.remove(
+                "success",
+                "error"
+            );
 
         }, 5000);
 
@@ -405,7 +638,15 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
 
-    if ("IntersectionObserver" in window) {
+    /*
+     * Use IntersectionObserver
+     * if browser supports it.
+     */
+
+    if (
+        "IntersectionObserver"
+        in window
+    ) {
 
         const revealObserver =
             new IntersectionObserver(
@@ -454,13 +695,28 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         );
 
+    } else {
+
+        /*
+         * Fallback for older browsers
+         */
+
+        revealElements.forEach(
+            (element) => {
+
+                element.classList.add(
+                    "show"
+                );
+
+            }
+        );
+
     }
 
 
 
     /* =========================================
-       PREVENT HASH JUMP
-       WITH SMOOTH SCROLL
+       SMOOTH SCROLLING
     ========================================== */
 
     const internalLinks =
@@ -476,7 +732,9 @@ document.addEventListener("DOMContentLoaded", () => {
             (event) => {
 
                 const targetId =
-                    link.getAttribute("href");
+                    link.getAttribute(
+                        "href"
+                    );
 
 
                 if (
@@ -496,7 +754,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 if (!target) {
+
                     return;
+
                 }
 
 
@@ -523,8 +783,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 window.scrollTo({
-                    top: targetPosition,
-                    behavior: "smooth"
+
+                    top:
+                        targetPosition,
+
+                    behavior:
+                        "smooth"
+
                 });
 
             }
@@ -535,12 +800,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
-       CLOSE MOBILE MENU ON RESIZE
+       RESIZE HANDLING
     ========================================== */
 
     window.addEventListener(
         "resize",
         () => {
+
+            /*
+             * Close mobile menu
+             * when returning to desktop
+             */
 
             if (
                 window.innerWidth > 768 &&
@@ -559,6 +829,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         "false"
                     );
 
+
                     menuToggle.textContent =
                         "☰";
 
@@ -567,6 +838,16 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
         }
+    );
+
+
+
+    /* =========================================
+       PAGE LOADED
+    ========================================== */
+
+    console.log(
+        "Portfolio initialized successfully."
     );
 
 });
